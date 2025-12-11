@@ -242,6 +242,16 @@
       transition: opacity 0.2s;
       box-shadow: inset 0 0 150px rgba(255,0,0,0.6);
     }
+    
+    .credit {
+      position: absolute;
+      bottom: 8px;
+      right: 15px;
+      font-size: 0.65rem;
+      color: #444;
+      letter-spacing: 1px;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
@@ -250,7 +260,11 @@
     
     <header class="header">
       <div class="logo-section">
-        <img class="logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAATgAAAE4CAMAAAD4oR9YAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAACpQTFRFwP1cVG8pMD8XAAAAGCAMSF8jDBAGGCALMEAXeJ45bI80PFAdeJ46YH8uCZvTVgAAAeRJREFUeJzt3TluAzEQAEFZXkk+5P9/16GCBTZoGOCsUfUCopnxwFwuAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACrvV0HWx3nyPV9sNVxjggXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkX7cNttzFWxzmyDzd6uXMIFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRftw90fY0zew9HPvD5W1zkgXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXLQPd/1cZL+Uc4Vbdl59E64RLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi46e7ht1VDQ+8nDDSJcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcNDnc1+pRoC/bqcINcq47h0GEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLzhXue/Uo0BffLv+McJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcNHkcM+fwZ6r6wAAAAAAAAAAAAAAAAAAAAAAAAAAAADAf/ILRNW27H9IMzQAAAAASUVORK5CYII=" />
+        <div class="logo">
+  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAATgAAAE4CAMAAAD4oR9YAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAACpQTFRFwP1cVG8pMD8XAAAAGCAMSF8jDBAGGCALMEAXeJ45bI80PFAdeJ46YH8uCZvTVgAAAeRJREFUeJzt3TluAzEQAEFZXkk+5P9/16GCBTZoGOCsUfUCopnxwFwuAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACrvV0HWx3nyPV9sNVxjggXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkX7cNttzFWxzmyDzd6uXMIFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRftw90fY0zew9HPvD5W1zkgXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXLQPd/1cZL+Uc4Vbdl59E64RLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi46e7ht1VDQ+8nDDSJcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcNDnc1+pRoC/bqcINcq47h0GEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLzhXue/Uo0BffLv+McJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcNHkcM+fwZ6r6wAAAAAAAAAAAAAAAAAAAAAAAAAAAADAf/ILRNW27H9IMzQAAAAASUVORK5CYII=" 
+       alt="logo" 
+       style="width:50px;height:50px;border-radius:8px;" />
+</div>
         <div>
           <div class="title">DUO DRIFT</div>
           <div class="subtitle">SYMBIOTIC SURVIVAL</div>
@@ -289,6 +303,8 @@
     </div>
     
     <div class="danger-vignette" id="danger"></div>
+    
+    <div class="credit">made by g9gbobzy</div>
     
     <div class="overlay active" id="start-overlay">
       <h2>DUO DRIFT</h2>
@@ -505,11 +521,11 @@
       const dist = Math.sqrt(dx * dx + dy * dy);
       
       if (dist <= SAFE_DISTANCE) {
-        linkStrength = Math.min(100, linkStrength + 0.5);
+        linkStrength = Math.min(100, linkStrength + 0.3);
       } else if (dist > SAFE_DISTANCE) {
         const excess = dist - SAFE_DISTANCE;
         const maxExcess = MAX_DISTANCE - SAFE_DISTANCE;
-        const drain = (excess / maxExcess) * 2;
+        const drain = (excess / maxExcess) * 0.5; // Much slower drain
         linkStrength = Math.max(0, linkStrength - drain);
       }
       
