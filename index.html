@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Duo Drift - Symbiotic Survival</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #0a0a12;
+      font-family: 'Orbitron', sans-serif;
+      overflow: hidden;
+      color: #c8ff00;
+    }
+    
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+    
+    canvas {
+      display: block;
+    }
+    
+    .header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 25px;
+      background: linear-gradient(180deg, rgba(10,10,18,0.95) 0%, transparent 100%);
+      z-index: 10;
+    }
+    
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .logo {
+      width: 50px;
+      height: 50px;
+      background: #c8ff00;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 900;
+      color: #0a0a12;
+    }
+    
+    .title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-shadow: 0 0 20px rgba(200,255,0,0.5);
+      letter-spacing: 3px;
+    }
+    
+    .subtitle {
+      font-size: 0.6rem;
+      color: #666;
+      letter-spacing: 2px;
+    }
+    
+    .hud {
+      position: absolute;
+      top: 80px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 10;
+    }
+    
+    .stat-box {
+      background: rgba(20,20,35,0.9);
+      border: 1px solid rgba(200,255,0,0.3);
+      border-radius: 10px;
+      padding: 15px 20px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .stat-label {
+      font-size: 0.6rem;
+      color: #666;
+      letter-spacing: 2px;
+      margin-bottom: 5px;
+    }
+    
+    .link-bar {
+      width: 150px;
+      height: 8px;
+      background: #1a1a2e;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+    
+    .link-fill {
+      height: 100%;
+      transition: width 0.1s, background 0.3s;
+      border-radius: 4px;
+    }
+    
+    .score-value {
+      font-size: 2rem;
+      font-weight: 700;
+      text-shadow: 0 0 15px rgba(200,255,0,0.6);
+    }
+    
+    .combo {
+      font-size: 0.8rem;
+      color: #ff00ff;
+      text-shadow: 0 0 10px rgba(255,0,255,0.6);
+    }
+    
+    .controls-hint {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 30px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    
+    .control-box {
+      background: rgba(20,20,35,0.8);
+      border-radius: 8px;
+      padding: 10px 20px;
+      text-align: center;
+    }
+    
+    .control-box.cyan { border: 1px solid rgba(0,255,255,0.4); }
+    .control-box.magenta { border: 1px solid rgba(255,0,255,0.4); }
+    .control-box.boost { border: 1px solid rgba(200,255,0,0.4); }
+    
+    .key {
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+    .key.cyan { color: #00ffff; }
+    .key.magenta { color: #ff00ff; }
+    .key.boost { color: #c8ff00; }
+    
+    .control-label {
+      font-size: 0.5rem;
+      color: #666;
+      margin-top: 3px;
+    }
+    
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(10,10,18,0.85);
+      backdrop-filter: blur(5px);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    
+    .overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    .overlay h2 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 30px rgba(200,255,0,0.6);
+    }
+    
+    .overlay .gameover-title {
+      color: #ff4444;
+      text-shadow: 0 0 30px rgba(255,68,68,0.6);
+    }
+    
+    .overlay p {
+      color: #888;
+      margin-bottom: 10px;
+      font-size: 0.8rem;
+    }
+    
+    .overlay .final-score {
+      font-size: 4rem;
+      color: #c8ff00;
+      text-shadow: 0 0 40px rgba(200,255,0,0.8);
+      margin-bottom: 30px;
+    }
+    
+    .btn {
+      background: #c8ff00;
+      color: #0a0a12;
+      border: none;
+      padding: 15px 40px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 0 20px rgba(200,255,0,0.4);
+    }
+    
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 40px rgba(200,255,0,0.6);
+    }
+    
+    .instructions {
+      max-width: 500px;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .instructions span.cyan { color: #00ffff; }
+    .instructions span.magenta { color: #ff00ff; }
+    .instructions span.lime { color: #c8ff00; }
+    
+    .danger-vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.2s;
+      box-shadow: inset 0 0 150px rgba(255,0,0,0.6);
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game"></canvas>
+    
+    <header class="header">
+      <div class="logo-section">
+        <img class="logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAATgAAAE4CAMAAAD4oR9YAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAACpQTFRFwP1cVG8pMD8XAAAAGCAMSF8jDBAGGCALMEAXeJ45bI80PFAdeJ46YH8uCZvTVgAAAeRJREFUeJzt3TluAzEQAEFZXkk+5P9/16GCBTZoGOCsUfUCopnxwFwuAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACrvV0HWx3nyPV9sNVxjggXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkX7cNttzFWxzmyDzd6uXMIFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRftw90fY0zew9HPvD5W1zkgXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXLQPd/1cZL+Uc4Vbdl59E64RLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi46e7ht1VDQ+8nDDSJcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcNDnc1+pRoC/bqcINcq47h0GEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLhIuEi4SLzhXue/Uo0BffLv+McJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcJFwkXCRcNHkcM+fwZ6r6wAAAAAAAAAAAAAAAAAAAAAAAAAAAADAf/ILRNW27H9IMzQAAAAASUVORK5CYII=" />
+        <div>
+          <div class="title">DUO DRIFT</div>
+          <div class="subtitle">SYMBIOTIC SURVIVAL</div>
+        </div>
+      </div>
+    </header>
+    
+    <div class="hud">
+      <div class="stat-box">
+        <div class="stat-label">SYMBIOTIC LINK</div>
+        <div class="link-bar">
+          <div class="link-fill" id="link-fill"></div>
+        </div>
+        <div id="link-percent">100%</div>
+      </div>
+      <div class="stat-box" style="text-align: right;">
+        <div class="stat-label">SCORE</div>
+        <div class="score-value" id="score">0</div>
+        <div class="combo" id="combo"></div>
+      </div>
+    </div>
+    
+    <div class="controls-hint" id="controls">
+      <div class="control-box cyan">
+        <div class="key cyan">WASD</div>
+        <div class="control-label">DRIFT</div>
+      </div>
+      <div class="control-box magenta">
+        <div class="key magenta">↑←↓→</div>
+        <div class="control-label">PULSE</div>
+      </div>
+      <div class="control-box boost">
+        <div class="key boost">SHIFT</div>
+        <div class="control-label">BOOST</div>
+      </div>
+    </div>
+    
+    <div class="danger-vignette" id="danger"></div>
+    
+    <div class="overlay active" id="start-overlay">
+      <h2>DUO DRIFT</h2>
+      <div class="instructions">
+        <p>Two creatures, one bond. Keep them close to survive!</p>
+        <p><span class="cyan">WASD</span> controls Drift • <span class="magenta">Arrow Keys</span> controls Pulse</p>
+        <p><span class="lime">SHIFT</span> to boost • Collect <span class="lime">orbs</span> • Avoid <span style="color:#ff4444">enemies</span></p>
+      </div>
+      <button class="btn" onclick="startGame()">START DRIFT</button>
+    </div>
+    
+    <div class="overlay" id="gameover-overlay">
+      <h2 class="gameover-title">LINK SEVERED</h2>
+      <p>Final Score</p>
+      <div class="final-score" id="final-score">0</div>
+      <button class="btn" onclick="startGame()">TRY AGAIN</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    
+    // DOM elements
+    const linkFill = document.getElementById('link-fill');
+    const linkPercent = document.getElementById('link-percent');
+    const scoreEl = document.getElementById('score');
+    const comboEl = document.getElementById('combo');
+    const dangerEl = document.getElementById('danger');
+    const startOverlay = document.getElementById('start-overlay');
+    const gameoverOverlay = document.getElementById('gameover-overlay');
+    const finalScoreEl = document.getElementById('final-score');
+    const controlsEl = document.getElementById('controls');
+    
+    // Game constants
+    const SAFE_DISTANCE = 180;
+    const MAX_DISTANCE = 320;
+    const BASE_SPEED = 6;
+    const BOOST_SPEED = 12;
+    const ORB_SPAWN_RATE = 2000;
+    const ENEMY_SPAWN_RATE = 4000;
+    
+    // Game state
+    let gameState = 'idle';
+    let score = 0;
+    let combo = 1;
+    let comboTimer = 0;
+    let linkStrength = 100;
+    let screenShake = 0;
+    let lastTime = 0;
+    let orbSpawnTimer = 0;
+    let enemySpawnTimer = 0;
+    let scoreTimer = 0;
+    let difficulty = 1;
+    
+    // Entities
+    let drift = { x: 0, y: 0, vx: 0, vy: 0, trail: [] };
+    let pulse = { x: 0, y: 0, vx: 0, vy: 0, trail: [] };
+    let orbs = [];
+    let enemies = [];
+    let particles = [];
+    let stars = [];
+    
+    // Input
+    const keys = new Set();
+    
+    // Initialize
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initStars();
+    }
+    
+    function initStars() {
+      stars = [];
+      for (let i = 0; i < 150; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 2 + 0.5,
+          speed: Math.random() * 0.5 + 0.1,
+          twinkle: Math.random() * Math.PI * 2
+        });
+      }
+    }
+    
+    function resetGame() {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      
+      drift = { x: cx - 80, y: cy, vx: 0, vy: 0, trail: [] };
+      pulse = { x: cx + 80, y: cy, vx: 0, vy: 0, trail: [] };
+      orbs = [];
+      enemies = [];
+      particles = [];
+      
+      score = 0;
+      combo = 1;
+      comboTimer = 0;
+      linkStrength = 100;
+      screenShake = 0;
+      orbSpawnTimer = 0;
+      enemySpawnTimer = 0;
+      scoreTimer = 0;
+      difficulty = 1;
+    }
+    
+    function startGame() {
+      resetGame();
+      gameState = 'playing';
+      startOverlay.classList.remove('active');
+      gameoverOverlay.classList.remove('active');
+      controlsEl.style.opacity = '1';
+    }
+    
+    function gameOver() {
+      gameState = 'gameover';
+      finalScoreEl.textContent = score.toLocaleString();
+      gameoverOverlay.classList.add('active');
+      
+      // Explosion particles
+      for (let i = 0; i < 50; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 8 + 2;
+        particles.push({
+          x: (drift.x + pulse.x) / 2,
+          y: (drift.y + pulse.y) / 2,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1,
+          color: Math.random() > 0.5 ? '#00ffff' : '#ff00ff',
+          size: Math.random() * 6 + 2
+        });
+      }
+    }
+    
+    // Spawners
+    function spawnOrb() {
+      const padding = 100;
+      orbs.push({
+        x: padding + Math.random() * (canvas.width - padding * 2),
+        y: padding + Math.random() * (canvas.height - padding * 2),
+        radius: 12,
+        pulse: 0,
+        value: Math.random() > 0.7 ? 50 : 10
+      });
+    }
+    
+    function spawnEnemy() {
+      const side = Math.floor(Math.random() * 4);
+      let x, y;
+      
+      switch (side) {
+        case 0: x = -30; y = Math.random() * canvas.height; break;
+        case 1: x = canvas.width + 30; y = Math.random() * canvas.height; break;
+        case 2: x = Math.random() * canvas.width; y = -30; break;
+        case 3: x = Math.random() * canvas.width; y = canvas.height + 30; break;
+      }
+      
+      enemies.push({
+        x, y,
+        speed: 1.5 + difficulty * 0.3,
+        target: Math.random() > 0.5 ? 'drift' : 'pulse',
+        angle: 0
+      });
+    }
+    
+    // Update functions
+    function updateCreature(creature, up, down, left, right, dt) {
+      const boosting = keys.has('shift');
+      const speed = boosting ? BOOST_SPEED : BASE_SPEED;
+      
+      let ax = 0, ay = 0;
+      if (keys.has(up)) ay -= 1;
+      if (keys.has(down)) ay += 1;
+      if (keys.has(left)) ax -= 1;
+      if (keys.has(right)) ax += 1;
+      
+      // Normalize diagonal movement
+      if (ax !== 0 && ay !== 0) {
+        ax *= 0.707;
+        ay *= 0.707;
+      }
+      
+      creature.vx += ax * speed * 0.3;
+      creature.vy += ay * speed * 0.3;
+      
+      // Friction
+      creature.vx *= 0.9;
+      creature.vy *= 0.9;
+      
+      creature.x += creature.vx;
+      creature.y += creature.vy;
+      
+      // Bounds
+      const padding = 25;
+      creature.x = Math.max(padding, Math.min(canvas.width - padding, creature.x));
+      creature.y = Math.max(padding, Math.min(canvas.height - padding, creature.y));
+      
+      // Trail
+      if (Math.abs(creature.vx) > 0.5 || Math.abs(creature.vy) > 0.5) {
+        creature.trail.push({ x: creature.x, y: creature.y, life: 1 });
+      }
+      if (creature.trail.length > 20) creature.trail.shift();
+      
+      // Update trail life
+      creature.trail.forEach(t => t.life -= 0.05);
+      creature.trail = creature.trail.filter(t => t.life > 0);
+    }
+    
+    function updateLink() {
+      const dx = drift.x - pulse.x;
+      const dy = drift.y - pulse.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      if (dist <= SAFE_DISTANCE) {
+        linkStrength = Math.min(100, linkStrength + 0.5);
+      } else if (dist > SAFE_DISTANCE) {
+        const excess = dist - SAFE_DISTANCE;
+        const maxExcess = MAX_DISTANCE - SAFE_DISTANCE;
+        const drain = (excess / maxExcess) * 2;
+        linkStrength = Math.max(0, linkStrength - drain);
+      }
+      
+      // Update UI
+      const hue = linkStrength > 60 ? 75 : linkStrength > 30 ? 45 : 0;
+      const sat = 100;
+      const light = 50;
+      linkFill.style.width = `${linkStrength}%`;
+      linkFill.style.background = `hsl(${hue}, ${sat}%, ${light}%)`;
+      linkFill.style.boxShadow = `0 0 10px hsl(${hue}, ${sat}%, ${light}%)`;
+      linkPercent.textContent = `${Math.floor(linkStrength)}%`;
+      linkPercent.style.color = `hsl(${hue}, ${sat}%, ${light}%)`;
+      
+      // Danger vignette
+      dangerEl.style.opacity = linkStrength < 40 ? (40 - linkStrength) / 40 * 0.8 : 0;
+      
+      if (linkStrength <= 0) {
+        gameOver();
+      }
+    }
+    
+    function updateOrbs(dt) {
+      orbSpawnTimer += dt;
+      if (orbSpawnTimer > ORB_SPAWN_RATE / difficulty && orbs.length < 8) {
+        spawnOrb();
+        orbSpawnTimer = 0;
+      }
+      
+      orbs.forEach(orb => {
+        orb.pulse += 0.1;
+        
+        // Check collision with creatures
+        [drift, pulse].forEach(creature => {
+          const dx = creature.x - orb.x;
+          const dy = creature.y - orb.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < orb.radius + 20) {
+            orb.collected = true;
+            score += orb.value * combo;
+            comboTimer = 3;
+            combo = Math.min(10, combo + 1);
+            
+            // Particles
+            for (let i = 0; i < 10; i++) {
+              const angle = Math.random() * Math.PI * 2;
+              particles.push({
+                x: orb.x,
+                y: orb.y,
+                vx: Math.cos(angle) * 3,
+                vy: Math.sin(angle) * 3,
+                life: 1,
+                color: '#c8ff00',
+                size: 4
+              });
+            }
+          }
+        });
+      });
+      
+      orbs = orbs.filter(o => !o.collected);
+    }
+    
+    function updateEnemies(dt) {
+      enemySpawnTimer += dt;
+      if (enemySpawnTimer > ENEMY_SPAWN_RATE / difficulty && enemies.length < 5 + Math.floor(difficulty)) {
+        spawnEnemy();
+        enemySpawnTimer = 0;
+      }
+      
+      enemies.forEach(enemy => {
+        const target = enemy.target === 'drift' ? drift : pulse;
+        const dx = target.x - enemy.x;
+        const dy = target.y - enemy.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        enemy.x += (dx / dist) * enemy.speed;
+        enemy.y += (dy / dist) * enemy.speed;
+        enemy.angle += 0.1;
+        
+        // Check collision
+        if (dist < 30) {
+          linkStrength -= 25;
+          screenShake = 10;
+          combo = 1;
+          
+          // Push enemy away
+          enemy.x -= (dx / dist) * 100;
+          enemy.y -= (dy / dist) * 100;
+          
+          // Damage particles
+          for (let i = 0; i < 15; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            particles.push({
+              x: target.x,
+              y: target.y,
+              vx: Math.cos(angle) * 5,
+              vy: Math.sin(angle) * 5,
+              life: 1,
+              color: '#ff4444',
+              size: 5
+            });
+          }
+        }
+      });
+      
+      // Remove off-screen enemies that wandered too far
+      enemies = enemies.filter(e => 
+        e.x > -100 && e.x < canvas.width + 100 && 
+        e.y > -100 && e.y < canvas.height + 100
+      );
+    }
+    
+    function updateParticles() {
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.95;
+        p.vy *= 0.95;
+        p.life -= 0.03;
+      });
+      particles = particles.filter(p => p.life > 0);
+    }
+    
+    function updateCombo(dt) {
+      if (comboTimer > 0) {
+        comboTimer -= dt / 1000;
+        if (comboTimer <= 0) {
+          combo = 1;
+        }
+      }
+      
+      comboEl.textContent = combo > 1 ? `x${combo} COMBO` : '';
+    }
+    
+    function updateScore(dt) {
+      if (gameState === 'playing') {
+        scoreTimer += dt;
+        // Only add score every 500ms instead of every frame
+        if (scoreTimer >= 500) {
+          score += Math.floor(linkStrength / 50) * combo;
+          scoreTimer = 0;
+        }
+        scoreEl.textContent = score.toLocaleString();
+        
+        // Increase difficulty over time
+        difficulty = 1 + score / 3000;
+      }
+    }
+    
+    // Render functions
+    function drawStars() {
+      stars.forEach(star => {
+        star.twinkle += 0.02;
+        const alpha = 0.3 + Math.sin(star.twinkle) * 0.3;
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Slowly move stars
+        star.y += star.speed;
+        if (star.y > canvas.height) {
+          star.y = 0;
+          star.x = Math.random() * canvas.width;
+        }
+      });
+    }
+    
+    function drawLink() {
+      const gradient = ctx.createLinearGradient(drift.x, drift.y, pulse.x, pulse.y);
+      gradient.addColorStop(0, '#00ffff');
+      gradient.addColorStop(0.5, linkStrength > 60 ? '#c8ff00' : linkStrength > 30 ? '#ffaa00' : '#ff4444');
+      gradient.addColorStop(1, '#ff00ff');
+      
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 2 + linkStrength / 30;
+      ctx.lineCap = 'round';
+      
+      // Wavy line effect
+      ctx.beginPath();
+      const dx = pulse.x - drift.x;
+      const dy = pulse.y - drift.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const segments = 30;
+      
+      for (let i = 0; i <= segments; i++) {
+        const t = i / segments;
+        const x = drift.x + dx * t;
+        const y = drift.y + dy * t;
+        const wave = Math.sin(t * Math.PI * 4 + Date.now() / 200) * (5 - linkStrength / 25);
+        const perpX = -dy / dist * wave;
+        const perpY = dx / dist * wave;
+        
+        if (i === 0) ctx.moveTo(x + perpX, y + perpY);
+        else ctx.lineTo(x + perpX, y + perpY);
+      }
+      ctx.stroke();
+      
+      // Glow
+      ctx.shadowColor = linkStrength > 60 ? '#c8ff00' : '#ff4444';
+      ctx.shadowBlur = 15;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      
+      // Energy particles on link
+      if (linkStrength > 30) {
+        const t = (Date.now() % 1500) / 1500;
+        const px = drift.x + dx * t;
+        const py = drift.y + dy * t;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(px, py, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    function drawCreature(creature, color, glowColor) {
+      // Trail
+      creature.trail.forEach((t, i) => {
+        ctx.fillStyle = `${color}${Math.floor(t.life * 50).toString(16).padStart(2, '0')}`;
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 8 * t.life, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      
+      // Outer glow
+      const gradient = ctx.createRadialGradient(
+        creature.x, creature.y, 0,
+        creature.x, creature.y, 40
+      );
+      gradient.addColorStop(0, `${glowColor}40`);
+      gradient.addColorStop(1, 'transparent');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(creature.x, creature.y, 40, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Core
+      ctx.fillStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 20;
+      ctx.beginPath();
+      ctx.arc(creature.x, creature.y, 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Inner dark
+      ctx.fillStyle = '#0a0a12';
+      ctx.beginPath();
+      ctx.arc(creature.x, creature.y, 12, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Eye
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(creature.x, creature.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Orbiting dots
+      const time = Date.now() / 500;
+      for (let i = 0; i < 2; i++) {
+        const angle = time + i * Math.PI;
+        const ox = creature.x + Math.cos(angle) * 25;
+        const oy = creature.y + Math.sin(angle) * 25;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(ox, oy, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    function drawOrbs() {
+      orbs.forEach(orb => {
+        const pulse = 1 + Math.sin(orb.pulse) * 0.2;
+        const r = orb.radius * pulse;
+        
+        // Glow
+        const gradient = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, r * 2);
+        gradient.addColorStop(0, orb.value > 10 ? '#ffff00' : '#c8ff00');
+        gradient.addColorStop(0.5, orb.value > 10 ? '#ffff0040' : '#c8ff0040');
+        gradient.addColorStop(1, 'transparent');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(orb.x, orb.y, r * 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Core
+        ctx.fillStyle = orb.value > 10 ? '#ffff00' : '#c8ff00';
+        ctx.shadowColor = orb.value > 10 ? '#ffff00' : '#c8ff00';
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(orb.x, orb.y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+    }
+    
+    function drawEnemies() {
+      enemies.forEach(enemy => {
+        ctx.save();
+        ctx.translate(enemy.x, enemy.y);
+        ctx.rotate(enemy.angle);
+        
+        // Glow
+        const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 30);
+        gradient.addColorStop(0, '#ff444440');
+        gradient.addColorStop(1, 'transparent');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(0, 0, 30, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Body (spiky)
+        ctx.fillStyle = '#ff4444';
+        ctx.shadowColor = '#ff4444';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const angle = (i / 6) * Math.PI * 2;
+          const r = i % 2 === 0 ? 18 : 10;
+          const x = Math.cos(angle) * r;
+          const y = Math.sin(angle) * r;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        // Eye
+        ctx.fillStyle = '#0a0a12';
+        ctx.beginPath();
+        ctx.arc(0, 0, 6, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ff0000';
+        ctx.beginPath();
+        ctx.arc(0, 0, 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+      });
+    }
+    
+    function drawParticles() {
+      particles.forEach(p => {
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+    }
+    
+    // Main loop
+    function gameLoop(timestamp) {
+      const dt = timestamp - lastTime;
+      lastTime = timestamp;
+      
+      // Screen shake
+      if (screenShake > 0) {
+        ctx.setTransform(1, 0, 0, 1, 
+          (Math.random() - 0.5) * screenShake,
+          (Math.random() - 0.5) * screenShake
+        );
+        screenShake *= 0.9;
+        if (screenShake < 0.5) screenShake = 0;
+      } else {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+      }
+      
+      // Clear
+      ctx.fillStyle = '#0a0a12';
+      ctx.fillRect(-10, -10, canvas.width + 20, canvas.height + 20);
+      
+      // Draw background
+      drawStars();
+      
+      if (gameState === 'playing') {
+        // Update
+        updateCreature(drift, 'w', 's', 'a', 'd', dt);
+        updateCreature(pulse, 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', dt);
+        updateLink();
+        updateOrbs(dt);
+        updateEnemies(dt);
+        updateCombo(dt);
+        updateScore(dt);
+      }
+      
+      updateParticles();
+      
+      // Draw game objects
+      if (gameState !== 'idle') {
+        drawLink();
+        drawOrbs();
+        drawEnemies();
+        drawCreature(drift, '#00ffff', '#00ffff');
+        drawCreature(pulse, '#ff00ff', '#ff00ff');
+        drawParticles();
+      }
+      
+      requestAnimationFrame(gameLoop);
+    }
+    
+    // Event listeners
+    window.addEventListener('keydown', e => {
+      keys.add(e.key.toLowerCase());
+      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+      }
+    });
+    
+    window.addEventListener('keyup', e => {
+      keys.delete(e.key.toLowerCase());
+    });
+    
+    window.addEventListener('resize', resize);
+    
+    // Init
+    resize();
+    resetGame();
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
